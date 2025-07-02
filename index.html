@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📘 Wordify - Your Mini Dictionary</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #667eea, #764ba2);
+      color: white;
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    input {
+      padding: 1rem;
+      font-size: 1.2rem;
+      border-radius: 0.8rem;
+      border: none;
+      width: 80%;
+      max-width: 400px;
+    }
+    button {
+      padding: 1rem;
+      margin-top: 1rem;
+      font-size: 1rem;
+      border-radius: 0.8rem;
+      border: none;
+      background: #5a67d8;
+      color: white;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 2rem;
+      background: #ffffff22;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      max-width: 600px;
+      margin-inline: auto;
+      text-align: left;
+    }
+    .error {
+      margin-top: 2rem;
+      color: #f9a8d4;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>📘 Wordify</h1>
+  <input type="text" id="word" placeholder="Type a word..." />
+  <br />
+  <button onclick="searchWord()">🔍 Search</button>
+  <div id="output" class="result"></div>
+  <script>
+    async function searchWord() {
+      const word = document.getElementById("word").value.trim().toLowerCase();
+      const output = document.getElementById("output");
+      if (!word) {
+        output.innerHTML = "<p class='error'>Please type a word 😅</p>";
+        return;
+      }
+
+      output.innerHTML = "🔄 Searching...";
+
+      try {
+        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+        const data = await res.json();
+
+        if (data.title === "No Definitions Found") {
+          output.innerHTML = `<p class="error">😕 No meaning found for "${word}". Try another word?</p>`;
+          return;
+        }
+
+        const meaning = data[0].meanings[0];
+        const definition = meaning.definitions[0].definition;
+        const partOfSpeech = meaning.partOfSpeech;
+        const synonyms = meaning.definitions[0].synonyms || [];
+
+        output.innerHTML = `
+          <h2>${word}</h2>
+          <p><strong>Part of Speech:</strong> ${partOfSpeech}</p>
+          <p><strong>Definition:</strong> ${definition}</p>
+          ${synonyms.length ? `<p><strong>Synonyms:</strong> ${synonyms.slice(0, 5).join(", ")}</p>` : ""}
+        `;
+      } catch (err) {
+        output.innerHTML = `<p class="error">⚠️ Error fetching data. Try again later.</p>`;
+        console.error(err);
+      }
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</body>
+</html>
